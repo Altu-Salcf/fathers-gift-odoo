@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:local_auth/local_auth.dart';
@@ -78,13 +79,16 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void login() async {
-    final username = _usernameController.text.trim();
+    String input = _usernameController.text.trim();
     final password = _passwordController.text;
 
-    if (username.isEmpty || password.isEmpty) {
-      _showError("Please enter both username and password.");
+    if (input.isEmpty || password.isEmpty) {
+      _showError("Please enter both student ID and password.");
       return;
     }
+
+    // Auto-append @dmu.ae if the user hasn't typed it
+    final username = input.contains('@dmu.ae') ? input : '$input@dmu.ae';
 
     setState(() {
       _isLoading = true;
@@ -106,6 +110,9 @@ class _LoginScreenState extends State<LoginScreen> {
       }
       if (response['wallet_nfc'] != null) {
         await prefs.setString('walletNfc', response['wallet_nfc'].toString());
+      }
+      if (response['wallet_id'] != null) {
+        await prefs.setString('walletId', response['wallet_id'].toString());
       }
         
       if (mounted) {
@@ -135,100 +142,155 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
-  
-      body: Center(
-        child: _isLoading 
-            ? const CircularProgressIndicator()
-            : SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset(
-                      'assets/images/salcf.jpeg',
-                      height: 100,
-                      fit: BoxFit.contain,
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      "Welcome",
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      "Please sign in with your credentials to continue.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 16, color: Colors.grey),
-                    ),
-                    const SizedBox(height: 40),
-                    TextField(
-                      controller: _usernameController,
-                      decoration: InputDecoration(
-                        labelText: 'Username',
-                        prefixIcon: const Icon(Icons.person),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    TextField(
-                      controller: _passwordController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: 'Password',
-                        prefixIcon: const Icon(Icons.lock),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 30),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueAccent,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF0F2027), Color(0xFF203A43), Color(0xFF2C5364)],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: _isLoading 
+              ? const CircularProgressIndicator(color: Colors.white)
+              : SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(20.0),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                      child: Container(
+                        padding: const EdgeInsets.all(32.0),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(20.0),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1.5,
                           ),
-                        ),
-                        icon: const Icon(Icons.login),
-                        label: const Text(
-                          'Login',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        onPressed: login,
-                      ),
-                    ),
-                    if (!_isFirstLogin && _canCheckBiometrics) ...[
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.blueAccent,
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 15),
-                            side: const BorderSide(color: Colors.blueAccent, width: 2),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              spreadRadius: 2,
                             ),
-                          ),
-                          icon: const Icon(Icons.fingerprint, size: 28),
-                          label: const Text(
-                            'Login with Biometrics',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                          onPressed: _authenticateBiometrics,
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(15),
+                              ),
+                              child: Image.asset(
+                                'assets/images/salcf.jpeg',
+                                height: 80,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                            const SizedBox(height: 30),
+                            const Text(
+                              "Welcome Back",
+                              style: TextStyle(
+                                fontSize: 28, 
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(
+                              "Sign in to your account",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontSize: 16, color: Colors.white.withOpacity(0.7)),
+                            ),
+                            const SizedBox(height: 40),
+                            TextField(
+                              controller: _usernameController,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                labelText: 'Student ID',
+                                labelStyle: const TextStyle(color: Colors.white70),
+                                suffixText: '@dmu.ae',
+                                suffixStyle: const TextStyle(color: Colors.white70),
+                                prefixIcon: const Icon(Icons.person, color: Colors.white70),
+                                filled: true,
+                                fillColor: Colors.white.withOpacity(0.1),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            TextField(
+                              controller: _passwordController,
+                              obscureText: true,
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                labelText: 'Password',
+                                labelStyle: const TextStyle(color: Colors.white70),
+                                prefixIcon: const Icon(Icons.lock, color: Colors.white70),
+                                filled: true,
+                                fillColor: Colors.white.withOpacity(0.1),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 40),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 55,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF2C5364),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(15),
+                                  ),
+                                  elevation: 5,
+                                ),
+                                onPressed: login,
+                                child: const Text(
+                                  'LOGIN',
+                                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.5),
+                                ),
+                              ),
+                            ),
+                            if (!_isFirstLogin && _canCheckBiometrics) ...[
+                              const SizedBox(height: 20),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 55,
+                                child: OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    side: BorderSide(color: Colors.white.withOpacity(0.5), width: 1.5),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                  ),
+                                  icon: const Icon(Icons.fingerprint, size: 28),
+                                  label: const Text(
+                                    'Biometric Login',
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  ),
+                                  onPressed: _authenticateBiometrics,
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
-                    ],
-                  ],
+                    ),
+                  ),
                 ),
-              ),
+        ),
       ),
     );
   }

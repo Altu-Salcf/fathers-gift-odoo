@@ -46,3 +46,7 @@ app.*.map.json
 
 # Exclude print samples
 print_samples/
+
+# Ignore sensitive and local files
+updated_postman.json
+.env

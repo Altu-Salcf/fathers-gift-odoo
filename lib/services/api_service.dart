@@ -3,8 +3,7 @@ import 'package:http/http.dart' as http;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://10.10.131.43:8069/api/mobile';
-  static const String baseNfcUrl = 'http://10.10.131.43:5174/api';
+  static const String baseUrl = 'https://testerp.dmu.ae:5002';
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
 
@@ -16,10 +15,6 @@ class ApiService {
       if (token != null) {
         headers['Authorization'] = 'Bearer $token'; // The user requested Bearer token
       }
-      final cookie = await _storage.read(key: 'session_cookie');
-      if (cookie != null) {
-        headers['Cookie'] = cookie;
-      }
     }
     return headers;
   }
@@ -28,7 +23,7 @@ class ApiService {
   /// Returns a Map with token and potentially user info
   Future<Map<String, dynamic>> login(String username, String password) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/login'),
+      Uri.parse('$baseUrl/api/mobile/login'),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -52,18 +47,16 @@ class ApiService {
         await _storage.write(key: 'auth_token', value: token);
       }
       
-      final rawCookie = response.headers['set-cookie'];
-      if (rawCookie != null) {
-        int index = rawCookie.indexOf(';');
-        String cookie = (index == -1) ? rawCookie : rawCookie.substring(0, index);
-        await _storage.write(key: 'session_cookie', value: cookie);
-      }
+
       
       if (data['student_id'] != null) {
         await _storage.write(key: 'user_id', value: data['student_id'].toString());
       }
       if (data['wallet_nfc'] != null) {
         await _storage.write(key: 'wallet_nfc', value: data['wallet_nfc'].toString());
+      }
+      if (data['wallet_id'] != null) {
+        await _storage.write(key: 'wallet_id', value: data['wallet_id'].toString());
       }
       if (data['student_name'] != null) {
         await _storage.write(key: 'user_name', value: data['student_name'].toString());
@@ -79,7 +72,7 @@ class ApiService {
   /// Updated to use GET and send token via HEADERS
   Future<Map<String, dynamic>> getBalance() async {
     final response = await http.get(
-      Uri.parse('$baseUrl/balance'),
+      Uri.parse('$baseUrl/api/mobile/balance'),
       headers: await _headers(requiresAuth: true),
     );
 
@@ -94,7 +87,7 @@ class ApiService {
   /// Updated to use GET and send token via HEADERS
   Future<Map<String, dynamic>> getTransactions() async {
     final response = await http.get(
-      Uri.parse('$baseUrl/transactions'),
+      Uri.parse('$baseUrl/api/mobile/transactions'),
       headers: await _headers(requiresAuth: true),
     );
 
@@ -105,22 +98,6 @@ class ApiService {
     }
   }
 
-  /// NFC Tap API
-  Future<Map<String, dynamic>> nfcTap(String nfcId) async {
-    final response = await http.post(
-      Uri.parse('$baseNfcUrl/nfc_tap'),
-      headers: await _headers(),
-      body: jsonEncode({
-        'nfc_id': nfcId,
-      }),
-    );
-
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('NFC Tap failed: ${response.statusCode} - ${response.body}');
-    }
-  }
 
   /// Logout - clears local storage
   Future<void> logout() async {
@@ -128,6 +105,6 @@ class ApiService {
     await _storage.delete(key: 'user_id');
     await _storage.delete(key: 'wallet_nfc');
     await _storage.delete(key: 'user_name');
-    await _storage.delete(key: 'session_cookie');
+    await _storage.delete(key: 'wallet_id');
   }
 }

@@ -8,8 +8,8 @@ The API connection is managed in `lib/services/api_service.dart`.
 Update the `baseUrl` inside the `ApiService` class when deploying to production with the actual IP address or domain:
 ```dart
 class ApiService {
-  static const String baseUrl = 'http://10.10.131.43:8069/api/mobile';
-  static const String baseNfcUrl = 'http://10.10.131.43:8069/api';
+  static const String baseUrl = 'https://testerp.dmu.ae:5002/api/mobile';
+  static const String baseNfcUrl = 'https://testerp.dmu.ae:5002/api';
   // ...
 }
 ```
