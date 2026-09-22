@@ -1,10 +1,8 @@
 import 'dart:io';
-import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nfc_host_card_emulation/nfc_host_card_emulation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:barcode_widget/barcode_widget.dart';
 import 'package:app_settings/app_settings.dart';
 
 import 'theme_colors.dart';
@@ -34,17 +32,14 @@ class _FathersGiftScreenState extends State<FathersGiftScreen> with SingleTicker
   String studentName = 'Loading...';
   String walletNfc = '...';
   String nfcStatus = 'Initializing...';
-  bool _showSuccessIcon = false;
   List<dynamic> _transactions = [];
   bool _balanceVisible = false;
   bool _isLoading = true;
 
   double actualBalance = 0.00;
-  bool _isActive = true;
   String userBalance = '0.00';
 
   _NfcDisplayState _nfcState = _NfcDisplayState.loading;
-  bool get _nfcAvailable => _nfcState == _NfcDisplayState.active;
 
   // Card Flip State and Animation Controllers
   bool _isCardFlipped = false;
@@ -97,7 +92,11 @@ class _FathersGiftScreenState extends State<FathersGiftScreen> with SingleTicker
 
   Future<void> _fetchData() async {
     try {
-      if (mounted) setState(() { _isLoading = true; });
+      if (mounted) {
+        setState(() {
+          _isLoading = true;
+        });
+      }
       
       // Fetch Balance and Transactions concurrently
       final balanceFuture = _apiService.getBalance();
@@ -112,9 +111,6 @@ class _FathersGiftScreenState extends State<FathersGiftScreen> with SingleTicker
           actualBalance = (balanceData['balance'] as num?)?.toDouble() ?? 0.0;
           userBalance = _balanceVisible ? actualBalance.toStringAsFixed(2) : '******';
           
-          if (balanceData['is_active'] != null) {
-            _isActive = balanceData['is_active'];
-          }
           if (balanceData['student_name'] != null) {
             studentName = balanceData['student_name'].toString().toUpperCase();
           }
@@ -135,14 +131,18 @@ class _FathersGiftScreenState extends State<FathersGiftScreen> with SingleTicker
         });
       }
     } catch (e) {
-      print('Error fetching data: $e');
+      debugPrint('Error fetching data: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Failed to load data. Error: ${e.toString().split(':').last.trim()}'), backgroundColor: Colors.red),
         );
       }
     } finally {
-      if (mounted) setState(() { _isLoading = false; });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -158,10 +158,12 @@ class _FathersGiftScreenState extends State<FathersGiftScreen> with SingleTicker
   Future<void> _initNfcHce() async {
     // iOS does NOT support Host Card Emulation — only Apple Pay can emulate cards
     if (Platform.isIOS) {
-      if (mounted) setState(() {
-        nfcStatus = 'NFC tap-to-pay is not available on iPhone';
-        _nfcState = _NfcDisplayState.iosNotSupported;
-      });
+      if (mounted) {
+        setState(() {
+          nfcStatus = 'NFC tap-to-pay is not available on iPhone';
+          _nfcState = _NfcDisplayState.iosNotSupported;
+        });
+      }
       return;
     }
 
@@ -179,40 +181,50 @@ class _FathersGiftScreenState extends State<FathersGiftScreen> with SingleTicker
               permanentApduResponses: true,
               listenOnlyConfiguredPorts: false,
             );
-            if (mounted) setState(() {
-              nfcStatus = '';
-              _nfcState = _NfcDisplayState.active;
-            });
+            if (mounted) {
+              setState(() {
+                nfcStatus = '';
+                _nfcState = _NfcDisplayState.active;
+              });
+            }
             NfcHce.stream.listen((command) {
               _showSuccessFeedback();
             });
           } catch (e) {
-            if (mounted) setState(() {
-              nfcStatus = 'HCE init error: $e';
-              _nfcState = _NfcDisplayState.hceError;
-            });
+            if (mounted) {
+              setState(() {
+                nfcStatus = 'HCE init error: $e';
+                _nfcState = _NfcDisplayState.hceError;
+              });
+            }
           }
           break;
 
         case 'disabled':
-          if (mounted) setState(() {
-            nfcStatus = 'NFC is turned off';
-            _nfcState = _NfcDisplayState.disabled;
-          });
+          if (mounted) {
+            setState(() {
+              nfcStatus = 'NFC is turned off';
+              _nfcState = _NfcDisplayState.disabled;
+            });
+          }
           break;
 
         default: // 'notSupported' or anything unexpected
-          if (mounted) setState(() {
-            nfcStatus = 'NFC not supported';
-            _nfcState = _NfcDisplayState.notSupported;
-          });
+          if (mounted) {
+            setState(() {
+              nfcStatus = 'NFC not supported';
+              _nfcState = _NfcDisplayState.notSupported;
+            });
+          }
           break;
       }
     } catch (e) {
-      if (mounted) setState(() {
-        nfcStatus = 'NFC check failed: $e';
-        _nfcState = _NfcDisplayState.notSupported;
-      });
+      if (mounted) {
+        setState(() {
+          nfcStatus = 'NFC check failed: $e';
+          _nfcState = _NfcDisplayState.notSupported;
+        });
+      }
     }
   }
 
@@ -220,7 +232,6 @@ class _FathersGiftScreenState extends State<FathersGiftScreen> with SingleTicker
     if (mounted) {
       setState(() {
         nfcStatus = 'Paid Successfully!';
-        _showSuccessIcon = true;
       });
 
       // Auto-refresh data after 2 seconds
@@ -232,7 +243,6 @@ class _FathersGiftScreenState extends State<FathersGiftScreen> with SingleTicker
         if (mounted) {
           setState(() {
             nfcStatus = 'Ready to Tap';
-            _showSuccessIcon = false;
           });
         }
       });
@@ -350,12 +360,12 @@ class _FathersGiftScreenState extends State<FathersGiftScreen> with SingleTicker
               ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text("Recent Transactions", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
+                Text("Recent Transactions", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.black87)),
               ],
             ),
           ),
@@ -499,7 +509,6 @@ class _FathersGiftScreenState extends State<FathersGiftScreen> with SingleTicker
         );
 
       case _NfcDisplayState.iosNotSupported:
-      default:
         // iPhone — Apple does not allow third-party HCE
         return const Padding(
           padding: EdgeInsets.symmetric(horizontal: 20, vertical: 10),
@@ -647,14 +656,14 @@ class _FathersGiftScreenState extends State<FathersGiftScreen> with SingleTicker
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: Colors.grey.withOpacity(0.1)),
+        border: Border.all(color: Colors.grey.withValues(alpha: 0.1)),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: AppColors.primaryBlue.withOpacity(0.1),
+              color: AppColors.primaryBlue.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.receipt_long, color: AppColors.primaryBlue, size: 24),
@@ -702,7 +711,7 @@ class _FathersGiftScreenState extends State<FathersGiftScreen> with SingleTicker
         borderRadius: BorderRadius.circular(15),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.grey.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),

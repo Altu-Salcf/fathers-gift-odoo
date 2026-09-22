@@ -162,15 +162,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(32.0),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
+                          color: Colors.white.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(20.0),
                           border: Border.all(
-                            color: Colors.white.withOpacity(0.2),
+                            color: Colors.white.withValues(alpha: 0.2),
                             width: 1.5,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.1),
+                              color: Colors.black.withValues(alpha: 0.1),
                               blurRadius: 10,
                               spreadRadius: 2,
                             ),
@@ -205,7 +205,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             Text(
                               "Sign in to your account",
                               textAlign: TextAlign.center,
-                              style: TextStyle(fontSize: 16, color: Colors.white.withOpacity(0.7)),
+                              style: TextStyle(fontSize: 16, color: Colors.white.withValues(alpha: 0.7)),
                             ),
                             const SizedBox(height: 40),
                             TextField(
@@ -218,7 +218,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 suffixStyle: const TextStyle(color: Colors.white70),
                                 prefixIcon: const Icon(Icons.person, color: Colors.white70),
                                 filled: true,
-                                fillColor: Colors.white.withOpacity(0.1),
+                                fillColor: Colors.white.withValues(alpha: 0.1),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(15),
                                   borderSide: BorderSide.none,
@@ -235,7 +235,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 labelStyle: const TextStyle(color: Colors.white70),
                                 prefixIcon: const Icon(Icons.lock, color: Colors.white70),
                                 filled: true,
-                                fillColor: Colors.white.withOpacity(0.1),
+                                fillColor: Colors.white.withValues(alpha: 0.1),
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(15),
                                   borderSide: BorderSide.none,
@@ -270,7 +270,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                 child: OutlinedButton.icon(
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: Colors.white,
-                                    side: BorderSide(color: Colors.white.withOpacity(0.5), width: 1.5),
+                                    side: BorderSide(color: Colors.white.withValues(alpha: 0.5), width: 1.5),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(15),
                                     ),
